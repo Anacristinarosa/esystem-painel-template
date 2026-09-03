@@ -42,7 +42,7 @@ export function RegisterForm() {
 
     // Se o email precisa de confirmação, sessão fica null
     if (data.session) {
-      router.push("/jornada");
+      router.push("/dashboard");
       router.refresh();
     } else {
       setSucesso(true);

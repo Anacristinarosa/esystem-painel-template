@@ -19,7 +19,7 @@ export function LoginForm() {
     setACarregar(true);
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
       setErro(traduzirErro(error.message));
@@ -27,7 +27,17 @@ export function LoginForm() {
       return;
     }
 
-    router.push("/jornada");
+    let destino = "/dashboard";
+    if (data.user) {
+      const { data: perfil } = await supabase
+        .from("perfis")
+        .select("role")
+        .eq("id", data.user.id)
+        .single();
+      if (perfil?.role === "founder") destino = "/admin";
+    }
+
+    router.push(destino);
     router.refresh();
   }
 

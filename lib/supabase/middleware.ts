@@ -35,10 +35,10 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname === "/registo";
   const isProtectedRoute =
     request.nextUrl.pathname.startsWith("/dashboard") ||
-    request.nextUrl.pathname.startsWith("/mensagem") ||
-    request.nextUrl.pathname.startsWith("/ferramentas") ||
-    request.nextUrl.pathname.startsWith("/templates") ||
-    request.nextUrl.pathname.startsWith("/casos") ||
+    request.nextUrl.pathname.startsWith("/dossiers") ||
+    request.nextUrl.pathname.startsWith("/numeros") ||
+    request.nextUrl.pathname.startsWith("/documentos") ||
+    request.nextUrl.pathname.startsWith("/notas") ||
     request.nextUrl.pathname.startsWith("/definicoes") ||
     request.nextUrl.pathname.startsWith("/admin");
 
