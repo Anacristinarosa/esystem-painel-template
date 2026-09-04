@@ -25,6 +25,42 @@ create policy "Founder lê todos os perfis"
   on public.perfis for select
   using (exists (select 1 from public.perfis p where p.id = auth.uid() and p.role = 'founder'));
 
+create policy "Founder cria perfis"
+  on public.perfis for insert
+  with check (exists (select 1 from public.perfis p where p.id = auth.uid() and p.role = 'founder'));
+
+create policy "Founder atualiza perfis"
+  on public.perfis for update
+  using (exists (select 1 from public.perfis p where p.id = auth.uid() and p.role = 'founder'));
+
+-- Trigger de segurança: auto-cria uma linha em perfis sempre que
+-- um utilizador nasce em auth.users (via signup ou admin API).
+-- Sem isto, se a chamada explícita ao POST /rest/v1/perfis falhar,
+-- o app fica em loop de redirect porque login-form/dashboard não
+-- encontram o perfil.
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.perfis (id, nome, role)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data->>'nome', split_part(new.email, '@', 1)),
+    coalesce(new.raw_user_meta_data->>'role', 'cliente')
+  )
+  on conflict (id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
 -- ─────────────── PEÇA 1: DOSSIERS ───────────────
 
 create table if not exists public.dossiers (

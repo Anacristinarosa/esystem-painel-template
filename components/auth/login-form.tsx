@@ -27,17 +27,37 @@ export function LoginForm() {
       return;
     }
 
-    let destino = "/dashboard";
-    if (data.user) {
-      const { data: perfil } = await supabase
-        .from("perfis")
-        .select("role")
-        .eq("id", data.user.id)
-        .single();
-      if (perfil?.role === "founder") destino = "/admin";
+    if (!data.user) {
+      setErro("Não consegui abrir a sessão. Tenta outra vez.");
+      setACarregar(false);
+      return;
     }
 
-    router.push(destino);
+    const { data: perfil, error: erroPerfil } = await supabase
+      .from("perfis")
+      .select("role")
+      .eq("id", data.user.id)
+      .maybeSingle();
+
+    if (erroPerfil) {
+      setErro(
+        "A tua conta existe mas o perfil ainda não foi criado. Contacta a founder da plataforma.",
+      );
+      await supabase.auth.signOut();
+      setACarregar(false);
+      return;
+    }
+
+    if (!perfil) {
+      setErro(
+        "A tua conta existe mas o perfil ainda não foi criado. Contacta a founder da plataforma.",
+      );
+      await supabase.auth.signOut();
+      setACarregar(false);
+      return;
+    }
+
+    router.push(perfil.role === "founder" ? "/admin" : "/dashboard");
     router.refresh();
   }
 
